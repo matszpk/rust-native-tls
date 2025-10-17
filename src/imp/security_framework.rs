@@ -199,9 +199,12 @@ impl Identity {
             }
         });
 
-        let keychain = match *TEMP_KEYCHAIN.lock().unwrap() {
-            Some((ref keychain, _)) => keychain.clone(),
-            ref mut lock @ None => {
+        // keep it locked during import()
+        let keychain = &mut *TEMP_KEYCHAIN.lock().unwrap();
+
+        let keychain = match keychain {
+            Some((keychain, _)) => keychain.clone(),
+            lock @ None => {
                 let dir =
                     tempfile::TempDir::new().map_err(|_| Error(base::Error::from(errSecIO)))?;
 
